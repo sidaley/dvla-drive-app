@@ -1,0 +1,42 @@
+{
+  "packId": "dvla-core",
+  "title": "Core setup",
+  "version": "2026-02-16",
+  "sources": [
+    {
+      "label": "DVLA Cardiovascular disorders: assessing fitness to drive (last updated 7 Nov 2025)",
+      "url": "https://www.gov.uk/guidance/cardiovascular-disorders-assessing-fitness-to-drive"
+    },
+    {
+      "label": "DVLA Neurological disorders: assessing fitness to drive",
+      "url": "https://www.gov.uk/guidance/neurological-disorders-assessing-fitness-to-drive"
+    },
+    {
+      "label": "Assessing fitness to drive — a guide for medical professionals (Nov 2025 PDF)",
+      "url": "https://assets.publishing.service.gov.uk/media/690c6d0a68fffdd77951aab0/assessing-fitness-to-drive-november-2025.pdf"
+    }
+  ],
+  "start": "licence_group",
+  "nodes": {
+    "licence_group": {
+      "type": "single",
+      "title": "Which licence category?",
+      "help": "Group 1 = car/motorcycle. Group 2 = bus/lorry.",
+      "var": "licenceGroup",
+      "options": [
+        { "label": "Group 1 (car / motorcycle)", "value": "G1", "next": "scenario_menu" },
+        { "label": "Group 2 (bus / lorry)", "value": "G2", "next": "scenario_menu" }
+      ]
+    },
+    "scenario_menu": {
+      "type": "single",
+      "title": "What are you assessing today?",
+      "help": "Start with your common clinic flows. Add more packs later (TIA, ICD, diabetes, vision, sleepiness, etc.).",
+      "var": "scenario",
+      "options": [
+        { "label": "Transient loss of consciousness / syncope", "value": "syncope", "next": "PACK:syncope:start" },
+        { "label": "First seizure / isolated seizure pathway", "value": "seizure_first", "next": "PACK:seizure:first:start" }
+      ]
+    }
+  }
+}

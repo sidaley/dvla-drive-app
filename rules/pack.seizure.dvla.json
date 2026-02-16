@@ -1,0 +1,84 @@
+{
+  "packId": "seizure:first",
+  "title": "First seizure pathway (DVLA-led)",
+  "version": "2026-02-16",
+  "sources": [
+    {
+      "label": "DVLA Neurological disorders: assessing fitness to drive",
+      "url": "https://www.gov.uk/guidance/neurological-disorders-assessing-fitness-to-drive"
+    },
+    {
+      "label": "Epilepsy and driving (public GOV.UK guidance)",
+      "url": "https://www.gov.uk/epilepsy-and-driving"
+    }
+  ],
+  "entry": {
+    "id": "start",
+    "next": "sz_type"
+  },
+  "nodes": {
+    "sz_type": {
+      "type": "single",
+      "title": "What best describes the event?",
+      "help": "If it’s actually syncope/TLoC, use the syncope module. If it’s an epileptic seizure, continue here.",
+      "var": "szType",
+      "options": [
+        { "label": "Single epileptic seizure / first event", "value": "first", "next": "sz_risk_factor" },
+        { "label": "Multiple unprovoked seizures / epilepsy", "value": "epilepsy", "next": "RESULT:epilepsy_general" }
+      ]
+    },
+
+    "sz_risk_factor": {
+      "type": "single",
+      "title": "Any underlying factor that may increase recurrence risk?",
+      "help": "This is the DVLA-style branching used in many UK summaries: ‘no factor’ → 6 months; ‘factor present’ → 12 months (Group 1).",
+      "var": "szRiskFactor",
+      "options": [
+        { "label": "No clear factor increasing risk", "value": "no", "next": "sz_date" },
+        { "label": "Yes (factor that may increase risk)", "value": "yes", "next": "sz_date" }
+      ]
+    },
+
+    "sz_date": {
+      "type": "date",
+      "title": "Date of the seizure (DD/MM/YYYY)",
+      "help": "We calculate time since the event to display the minimum stop-driving period remaining.",
+      "var": "szDate",
+      "next": "RESULT:first_seizure_outcome"
+    }
+  },
+
+  "results": {
+    "first_seizure_outcome": {
+      "headline": "First seizure — DVLA-style restriction",
+      "group1": {
+        "restrictionLogic": {
+          "if": { "var": "szRiskFactor", "eq": "no" },
+          "then": "Must not drive for 6 months from the date of the seizure (Group 1), provided no higher-risk features apply.",
+          "else": "Must not drive for 12 months from the date of the seizure (Group 1), where factors increase recurrence risk."
+        },
+        "notify": "Must notify DVLA."
+      },
+      "group2": {
+        "restriction": "Must not drive and must notify DVLA (Group 2 standards are significantly stricter and longer).",
+        "notify": "Must notify DVLA."
+      },
+      "sourceUrl": "https://www.gov.uk/guidance/neurological-disorders-assessing-fitness-to-drive",
+      "sourceLabel": "DVLA neurological disorders guidance"
+    },
+
+    "epilepsy_general": {
+      "headline": "Epilepsy / multiple unprovoked seizures",
+      "group1": {
+        "restriction": "Must not drive and must notify DVLA. Driving cessation is typically 12 months from most recent seizure unless a permitted seizure criteria applies (see DVLA appendices).",
+        "notify": "Must notify DVLA."
+      },
+      "group2": {
+        "restriction": "Must not drive and must notify DVLA (Group 2 is stricter).",
+        "notify": "Must notify DVLA."
+      },
+      "sourceUrl": "https://www.gov.uk/guidance/neurological-disorders-assessing-fitness-to-drive",
+      "sourceLabel": "DVLA neurological disorders guidance"
+    }
+  }
+}

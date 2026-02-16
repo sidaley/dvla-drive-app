@@ -1,0 +1,124 @@
+{
+  "packId": "syncope",
+  "title": "Syncope / TLoC (ESC-assisted classification + DVLA outputs)",
+  "version": "2026-02-16",
+  "sources": [
+    {
+      "label": "DVLA Cardiovascular disorders: assessing fitness to drive (updated 7 Nov 2025)",
+      "url": "https://www.gov.uk/guidance/cardiovascular-disorders-assessing-fitness-to-drive"
+    },
+    {
+      "label": "Assessing fitness to drive — a guide for medical professionals (Nov 2025 PDF)",
+      "url": "https://assets.publishing.service.gov.uk/media/690c6d0a68fffdd77951aab0/assessing-fitness-to-drive-november-2025.pdf"
+    }
+  ],
+  "entry": {
+    "id": "start",
+    "next": "tloc_redflags"
+  },
+  "nodes": {
+    "tloc_redflags": {
+      "type": "multi",
+      "title": "Any features suggesting possible cardiac syncope? (classification assist)",
+      "help": "This is guideline-informed screening to avoid calling dangerous cardiac syncope 'simple faint'. If any are present, treat as higher risk pending evaluation.",
+      "var": "syncopeRedFlags",
+      "options": [
+        { "label": "During exertion", "value": "exertional" },
+        { "label": "While supine", "value": "supine" },
+        { "label": "Palpitations immediately before event", "value": "palpitations" },
+        { "label": "Known structural heart disease / cardiomyopathy / severe valve disease", "value": "structural" },
+        { "label": "Family history sudden cardiac death <40", "value": "fh_scd" },
+        { "label": "Abnormal ECG (e.g. conduction disease, pre-excitation, long QT, Brugada pattern)", "value": "ecg_abnormal" }
+      ],
+      "next": "tloc_while_driving"
+    },
+
+    "tloc_while_driving": {
+      "type": "single",
+      "title": "Did the episode occur while driving, or is it judged likely to occur while driving?",
+      "help": "DVLA pathways are stricter when episodes occur at the wheel / likely at the wheel.",
+      "var": "atWheel",
+      "options": [
+        { "label": "No", "value": "no", "next": "tloc_cause_known" },
+        { "label": "Yes", "value": "yes", "next": "RESULT:syncope_at_wheel" }
+      ]
+    },
+
+    "tloc_cause_known": {
+      "type": "single",
+      "title": "Is there a clear cause identified and treated / controlled?",
+      "help": "Examples: AV block paced; SVT ablated; medication-induced orthostatic hypotension adjusted; classic vasovagal with clear triggers and advice.",
+      "var": "causeTreated",
+      "options": [
+        { "label": "Yes (cause identified and treated / controlled)", "value": "yes", "next": "tloc_event_free" },
+        { "label": "No / unexplained / still under investigation", "value": "no", "next": "RESULT:syncope_unexplained" }
+      ]
+    },
+
+    "tloc_event_free": {
+      "type": "date",
+      "title": "Date of most recent episode (DD/MM/YYYY)",
+      "help": "We’ll calculate the event-free duration and apply the DVLA-style minimum restriction in this starter pack.",
+      "var": "lastEpisodeDate",
+      "next": "tloc_eventfree_gate"
+    },
+
+    "tloc_eventfree_gate": {
+      "type": "gate",
+      "title": "Compute event-free interval",
+      "logic": {
+        "daysSince": { "fromVar": "lastEpisodeDate", "toNowVar": "__now", "outVar": "daysSinceEpisode" }
+      },
+      "next": "RESULT:syncope_treated_gate"
+    }
+  },
+
+  "results": {
+    "syncope_at_wheel": {
+      "headline": "Higher-risk TLoC scenario (at the wheel / likely at the wheel)",
+      "group1": {
+        "restriction": "Must not drive. Use DVLA cardiovascular TLoC/syncope standards for the specific diagnosis; higher-risk pathways commonly require months off-road and specialist confirmation before return.",
+        "notify": "May need to notify DVLA depending on diagnosis and recurrence risk."
+      },
+      "group2": {
+        "restriction": "Must not drive and usually must notify DVLA (Group 2 thresholds are stricter).",
+        "notify": "Must notify DVLA if criteria met."
+      },
+      "sourceUrl": "https://www.gov.uk/guidance/cardiovascular-disorders-assessing-fitness-to-drive",
+      "sourceLabel": "DVLA cardiovascular disorders guidance"
+    },
+
+    "syncope_unexplained": {
+      "headline": "Unexplained syncope / ongoing investigation",
+      "group1": {
+        "restriction": "Must not drive until the cause is identified and recurrence risk is acceptably low under DVLA standards.",
+        "notify": "Depends on the final diagnosis; check DVLA notifiability for the identified condition."
+      },
+      "group2": {
+        "restriction": "Must not drive; Group 2 usually requires DVLA notification and stricter control.",
+        "notify": "Often must notify DVLA (confirm in DVLA cardiovascular guidance)."
+      },
+      "sourceUrl": "https://www.gov.uk/guidance/cardiovascular-disorders-assessing-fitness-to-drive",
+      "sourceLabel": "DVLA cardiovascular disorders guidance"
+    },
+
+    "syncope_treated_gate": {
+      "headline": "Cause identified and treated/controlled — apply event-free gate (starter logic)",
+      "notes": "This starter pack uses an event-free threshold as a conservative gate. Replace/extend with the exact DVLA tables for each syncope subtype in your next iteration.",
+      "group1": {
+        "restrictionLogic": {
+          "if": { "var": "daysSinceEpisode", "gte": 90 },
+          "then": "If event-free ≥ 3 months and condition is controlled, may be eligible to drive (subject to DVLA subtype rules).",
+          "else": "Must not drive until event-free for at least 3 months and stability confirmed."
+        },
+        "notify": "Depends on diagnosis; many Group 1 cardiac conditions do not require notification unless DVLA specifies."
+      },
+      "group2": {
+        "restriction": "Group 2 standards are stricter — confirm against the DVLA cardiovascular chapter for the exact diagnosis.",
+        "notify": "Group 2 cardiac conditions commonly require DVLA notification."
+      },
+      "sourceUrl": "https://www.gov.uk/guidance/cardiovascular-disorders-assessing-fitness-to-drive",
+      "sourceLabel": "DVLA cardiovascular disorders guidance"
+    }
+  }
+}
